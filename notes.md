@@ -20,16 +20,13 @@ Simulação matemática capaz de receber ações de agentes e retornar estados r
 
 Exemplo:
 simulação de formigas em busca de comida, cada formiga é um agente distinto no mesmo ambiente:
-![environment](images/full_state.png)
-
-
+<img src="images/full_state.png" alt="environment" width="400"/>
 
 - O que é um estado?
 O estado é um vetor que representa as condições do agente em um determinado step ou momento de tempo no ambiente, ele contém medições que o agente é capaz de acessar naquele instante de tempo, com base nas quais o agente decide sua próxima ação.
 
 exemplo de estado, no ambiente acima, cada formiga vê apenas o grid de células 5x5 ao seu redor:
-![state](images/state.png)
-
+<img src="images/state.png" alt="state" width="300"/>
 
 - O que é uma ação?
 Entre um estado e outro, o(s) agente(s) devem selecionar suas ações para aquele step, ou intervalo de tempo.
@@ -42,14 +39,14 @@ Uma ação também depende do espaço de ação do agente no ambiente. A título
 actionSpace = [0 1 2 3]
 ```
 onde cada número corresponde à um sentido de movimentação no ambiente:
-![action](images/meaning.png)
+<img src="images/meaning.png" alt="action" width="300"/>
 
 Como existem 4 formigas no ambiente, o vetor de ação para cada instante é um dicionário como o seguinte:
 ```python
 {"agent_0":0,"agent_1":3,"agent_2":2,"agent_3":1,}
 ```
 E portanto, para o dicionário acima, cada agente tomaria as seguintes ações e seus estados seguintes seriam resultantes dessas movimentações:
-![next_states](images/next_states.png)
+<img src="images/next_states.png" alt="next_states" width="400"/>
 
 - O que são ambientes não deterministicos? Como eles interferem com o aprendizado do agente?
 
