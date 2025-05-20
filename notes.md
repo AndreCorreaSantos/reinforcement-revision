@@ -106,3 +106,93 @@ Esse tipo de função que simplifica o problema pode ser aplicado em casos onde 
 
 
 - Quais são as funções de decisão estudadas?
+
+### Q-Learning
+
+O Q-Learning é um método de **aprendizado tabular** usado em aprendizado por reforço. Esse método mapeia pares de **estado e ação** a valores (Q-valores), que representam a **expectativa de recompensa acumulada** que o agente espera obter ao executar uma ação em um estado e seguir a política ótima a partir daí.
+
+Esses valores são atualizados com base na **recompensa recebida** e no valor máximo esperado das ações futuras. Assim, uma vez otimizado, para cada par $(s, a)$, existe um valor que estima o ganho total que o agente receberia ao tomar aquela ação naquele estado.
+
+Dessa forma, quando treinado, o agente que utiliza Q-Learning irá, a cada novo estado, **consultar a Q-table** e selecionar, entre as ações disponíveis, aquela com o **maior Q-valor**.
+
+#### Equação do Q-Learning
+
+$$
+Q(s, a) \leftarrow Q(s, a) + \alpha \left[ r + \gamma \max_{a'} Q(s', a') - Q(s, a) \right]
+$$
+
+* $Q(s, a)$: valor atual do par estado-ação
+* $\alpha$: taxa de aprendizado (learning rate)
+* $r$: recompensa recebida
+* $\gamma$: fator de desconto
+* $\max_{a'} Q(s', a')$: maior valor Q possível no próximo estado $s'$
+
+Essa equação mostra que o valor Q atual é ajustado na direção de uma estimativa de recompensa futura, ponderada pela taxa de aprendizado.
+
+### Hiperparâmetros importantes no Q-Learning
+
+Os principais hiperparâmetros que controlam o comportamento do Q-Learning são:
+
+* **Alpha (α) — Learning Rate:**
+  Controla o quanto os novos valores influenciam a Q-table.
+  Em ambientes não determinísticos, como o **Frozen Lake**, um valor muito alto de alpha pode fazer com que o agente aprenda padrões erráticos ou ruídos ao invés da dinâmica geral do ambiente.
+
+* **Gamma (γ) — Fator de Desconto:**
+  Determina o peso das recompensas futuras em relação às imediatas.
+  Valores próximos de zero fazem o agente focar em recompensas imediatas, enquanto valores próximos de 1.0 incentivam o planejamento a longo prazo. Em muitos casos, utiliza-se γ ≈ 0.9 ou superior, especialmente quando há estados terminais com grande recompensa.
+
+* **Epsilon (ε) — Fator de Exploração:**
+  Controla a probabilidade de o agente tomar ações aleatórias em vez de seguir a política baseada na Q-table.
+  Costuma-se iniciar com um valor alto (por exemplo, ε = 1.0), que **decresce gradualmente** ao longo do tempo. Isso permite que o agente explore o ambiente amplamente no início e, posteriormente, **exploite** o conhecimento adquirido.
+
+
+### SARSA
+
+O Q-Learning atualiza seus valores Q com base no **melhor valor Q** das ações disponíveis no próximo estado, ou seja, assume que o valor de uma determinada ação **a** é determinado pelo **máximo Q-valor** entre as ações possíveis no estado futuro **s'**. Essa lógica pressupõe que o agente sempre escolherá a ação de maior valor Q (política greedy).
+
+Contudo, isso nem sempre acontece na prática. Existem hiperparâmetros como o **ε (epsilon)**, que introduzem exploração aleatória (**ε-greedy**), e ambientes estocásticos, como o **Frozen Lake**, onde o agente pode não executar a ação pretendida ou o ambiente pode não responder de forma determinística. Para lidar com isso, foi criado o algoritmo **SARSA**.
+
+SARSA atualiza $Q(s,a)$ com base na **recompensa observada** da ação **realmente tomada** no próximo estado $s'$, ou seja, usa a ação $a'$ que o agente de fato escolheu seguindo sua política atual. Essa abordagem é chamada de **on-policy** e garante uma atualização mais realista dos valores Q com base nas recompensas e transições efetivamente vivenciadas, e não em estimativas ideais.
+
+$$
+Q(s, a) \leftarrow Q(s, a) + \alpha \left[r + \gamma Q(s', a') - Q(s, a)\right]
+$$
+
+### Deep Q Learning
+Em ambientes com espaços de ação e estado imensos, métodos tabulares como Q-learning e Sarsa tem imensa dificuldade em aprender, visto que não são capazes de atualizar estados similares, podem apenas atualizar os Q-valores de pares específicos (estado,ação). Em vista disso, em 2013 foi proposto um novo método de aprendizado que se propõe a usar uma rede neural no lugar da tabela, de modo a possibilitar generalizações e estimativas de valor para estados similares porém não idênticos à estados já vistos.
+
+
+<img src="images/deepqlearning.jpg" alt="deepqlearning" width="400"/>
+
+- O número de entradas da rede deve ser igual ao espaço de observação do agente.
+- O número de saídas da rede deve ser igual ao espaço de ação do agente.
+
+A seleção de melhor ação deve acontecer segundo:
+```python
+action = self.model.predict(state)
+return np.argmax(action[0])
+```
+
+A *loss function* usada para treinar a rede neural é a *mean squared error* (MSE):
+
+L(θ) = (yᵗ - Q(sᵗ, aᵗ; θ))²
+
+onde:
+- `yᵗ` é o reward acumulado
+- `Q(sᵗ, aᵗ; θ)` é o valor estimado pela rede neural
+
+- Experience Replay
+
+Treinar a rede em cada step traz um grande risco de overfitting, visto que as amostras são muito fortemente correlacionadas. Para fazer frente a tal risco, utiliza-se uma técnica chamada de experience replay.
+
+Experience replay consiste de armazenar as experiências do agente em um momento t em um dataset e o treinamento do agente ocorre em cima de um batch de experiencias selecionadas aleatoriamente desse dataset.
+
+`e_t = (s_t, a_t, r_t, s_{t+1})` 
+
+D = [e₁, ..., eₙ]
+
+### Actor Critic
+
+### A2C
+
+### PPO
