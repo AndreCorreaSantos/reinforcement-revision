@@ -97,7 +97,7 @@ def reward(env):
 ```
 
 
-A função de recompensa * NÃO DEVE *: fornecer informação excessiva sobre o ambiente que o agente não terá acesso durante sua avaliação em um cenário real. Visto que nesse caso o agente aprenderia a repetir ações de alta recompensa, sem "compreensão" da lógica do ambiente. O agente aprenderia uma heurística que poderia ser implementada em código procedural sem necessidade de aprendizado por reforço.
+A função de recompensa **NÃO DEVE**: fornecer informação excessiva sobre o ambiente que o agente não terá acesso durante sua avaliação em um cenário real. Visto que nesse caso o agente aprenderia a repetir ações de alta recompensa, sem "compreensão" da lógica do ambiente. O agente aprenderia uma heurística que poderia ser implementada em código procedural sem necessidade de aprendizado por reforço.
 
 Exemplo:
 Uma função de recompensa que penaliza toda ação que não aproxima o agente da recompensa forneceria informação sobre onde está o target exatamente e não incentiva qualquer tipo de comportamento colaborativo.
@@ -191,8 +191,118 @@ Experience replay consiste de armazenar as experiências do agente em um momento
 
 D = [e₁, ..., eₙ]
 
+### Reinforce
+- O que é o algoritmo REINFORCE?  
+Diferentemente dos algoritmos vistos anteriormente, que são value-based, o REINFORCE utiliza uma rede neural para retornar uma distribuição de probabilidade de escolha de cada ação para um dado estado. Ele define a policy em termos de:  
+
+π(s) = arg max_a Q(s, a)  (1)
+
+Enquanto algoritmos como o Q-Learning e o DQN definem a policy no formato de uma distribuição:  
+
+a_t ~ π_θ(a|s_t)  (2)
+
+onde θ representa os parâmetros da policy, e a ideia é atualizar esses parâmetros usando um gradiente ascendente para maximizar a expectativa de *reward* futuro. Para determinar essa distribuição, a rede neural utilizada é treinada para retornar, para cada estado, uma distribuição que maximiza a *reward*, ou seja, que maximiza a chance de uma ação ser escolhida que vai trazer uma maior recompensa para o agente.
+
+- Qual a vantagem e principais diferenças de algoritmos policy based vs value based?
+
+- Principais diferenças:
+
+  - Abordagem: Policy-based otimiza a política diretamente (ex.: π(s) = arg max_a Q(s, a)), enquanto value-based estima valores (ex.: Q(s, a)) para derivar a política.
+      
+  - Ações: Policy-based suporta ações contínuas; value-based é mais comum em ações discretas.
+      Estabilidade vs Exploração: Value-based tende a ser mais estável, mas pode explorar menos; policy-based explora mais, mas pode ser menos convergente.
+      
+  - Uso de redes neurais: Policy-based usa redes para distribuções (ex.: a_t ~ π_θ(a|s_t)), enquanto value-based usa para estimar Q-valores.
+
+- Qual a diferença entre política e valor?
+
+| Aspect           | Value-Based                    | Policy-Based                      |    |
+| ---------------- | ------------------------------ | --------------------------------- | -- |
+| Output           | Value function (e.g., Q(s, a)) | Policy π(a                        | s) |
+| Action Selection | Argmax over values             | Sample from policy                |    |
+| Suitable For     | Discrete action spaces         | Continuous or stochastic policies |    |
+| Exploration      | Often needs ε-greedy           | Inherent via sampling             |    |
+
+
 ### Actor Critic
 
-### A2C
+**Actor-Critic** é um método de *Reinforcement Learning* que combina um **ator**, responsável por escolher ações, com um **crítico**, responsável por avaliar a qualidade dessas ações com base no estado e na recompensa.
+
+O algoritmo do sistema pode ser descrito como:
+
+```
+1. Initialize actor network π with random parameters φ
+2. Initialize critic network V with random parameters θ
+3. Repeat for every episode:
+    4. for time step t = 0, 1, 2, ... do
+        5. Observe current state s
+        6. Sample action a ~ π(·|s; φ)
+        7. Apply action a; observe reward r and next state s'
+        8. if s' is terminal then
+            9. Advantage Adv(s, a) ← r - V(s; θ)
+            10. Critic target y ← r
+        11. else
+            12. Advantage Adv(s, a) ← r + γV(s'; θ) - V(s; θ)
+            13. Critic target y ← r + γV(s'; θ)
+        14. Actor loss ℒ(φ) ← -Adv(s, a) · log π(a|s; φ)
+        15. Critic loss ℒ(θ) ← (y - V(s; θ))²
+        16. Update parameters φ by minimizing the actor loss ℒ(φ)
+        17. Update parameters θ by minimizing the critic loss ℒ(θ)
+```
+
+A imagem abaixo demonstra visualmente o sistema descrito:
+
+<img src="images/diagram.png" alt="environment" width="400"/>
+
+Explicando, o **crítico fornece feedback às ações do ator** por meio do cálculo da *advantage*, que é usada na otimização do ator. Em outras palavras, a *loss* do ator depende da *advantage* estimada pelo crítico.
+
+Já a *advantage* depende da recompensa $r$ e das estimativas do crítico para o valor do estado atual e do próximo estado.
+
+Por fim, o **crítico é otimizado** com base na diferença entre sua estimativa $V(s)$ e um alvo mais preciso $y$, que incorpora a recompensa imediata e, se aplicável, o valor esperado do próximo estado $V(s')$. Para estados não terminais, o alvo é ajustado com desconto $\gamma$, refletindo o valor futuro estimado.
+
+No sistema descrito o actor é policy-based, isto é, sua saída é uma distribuição de probabilidade de chance de escolher cada ação. Já o critic é value based, uma vez que ele estima um valor para avaliar a policy escolhida pelo autor.
+
+| Component | Type         | What it learns                        |      |
+| --------- | ------------ | ------------------------------------- | ---- |
+| Actor     | Policy-based | The optimal policy pi(a)              |      |
+| Critic    | Value-based  | The value function $V(s)$ or $Q(s,a)$ |      |
+
+- Qual a diferença de utilizar actor critic para outros métodos que usam simplesmente policy? Como reinforce tradicional?
+
+Diferentemente dos algoritmos que utilizam a recompensa para otimizar diretamente a política, os algoritmos actor critic beneficiam-se de "críticas" ou "recompensas" com menor variância quando comparadas às recompensas diretamente atribuídas pelo ambiente. Dessa forma, o crítico serve para estabilizar e acelerar a convergência do aprendizado do ator, principalmente em ambientes não deterministicos e altamente complexos.
+
+Geralmente, o critic reduz a variância do gradiente fornecido na otimização do agente e acelera a convergência de seu aprendizado.
+
+- Resumo prático:
+
+| Aspecto                     | REINFORCE (Policy only)                    | Actor-Critic                             |
+| --------------------------- | ------------------------------------------ | ---------------------------------------- |
+| O que é aprendido           | Apenas a política                          | Política e função de valor               |
+| Tipo de feedback            | Retorno total do episódio (alta variância) | Estimativa da vantagem (menor variância) |
+| Estabilidade do aprendizado | Menos estável e mais lento                 | Mais estável e rápido                    |
+| Eficiência                  | Pode precisar de mais episódios            | Mais eficiente com menos dados           |
+
+
 
 ### PPO
+
+PPO (Proximal Policy Optimization) é um algoritmo de aprendizado por reforço baseado no paradigma actor-critic, em que o ator (policy) escolhe as ações e o crítico (critic) estima o valor das ações ou estados.
+
+Uma das principais inovações do PPO é o uso de uma função de perda com uma "clipping function" (L<sub>clip</sub>), que restringe o quanto a política pode mudar em cada atualização. Isso é feito para evitar atualizações muito bruscas na política, que poderiam desestabilizar o aprendizado. Essa técnica torna o treinamento mais estável e melhora a velocidade de convergência.
+Detalhes Técnicos :
+
+A função L<sub>clip</sub> é baseada na razão entre a nova política e a antiga:
+r(θ)=πθ(a∣s)πθold(a∣s)
+r(θ)=πθold​​(a∣s)πθ​(a∣s)​
+
+A função de perda do ator é:
+Lclip(θ)=E[min⁡(r(θ)A^,clip(r(θ),1−ϵ,1+ϵ)A^)]
+Lclip(θ)=E[min(r(θ)A^,clip(r(θ),1−ϵ,1+ϵ)A^)]
+
+Onde:
+
+    A^A^ é a vantagem estimada (advantage).
+
+    ϵϵ é um hiperparâmetro (geralmente em torno de 0.1 a 0.2).
+
+    O objetivo é evitar que r(θ)r(θ) se afaste muito de 1, limitando grandes atualizações.
