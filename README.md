@@ -172,6 +172,8 @@ $$
 Q(s, a) \leftarrow Q(s, a) + \alpha \left[r + \gamma Q(s', a') - Q(s, a)\right]
 $$
 
+" SARSA aprende com uma política "quase ótima". Um agente treinado com o algorítimo SARSA interage com o ambiente atualizando q_table com base nas ações efetivamente tomadas. Quando o problema envolve achar a solução ótima ou quando o número mínimo de ações deve ser tomada na resolução do problema, o algorítimo SARSA pode não se apresentar como a melhor escolha " - segundo slides de aula.
+
 ### Deep Q Learning
 
 Em ambientes com espaços de ação e estado imensos, métodos tabulares como Q-learning e Sarsa tem imensa dificuldade em aprender, visto que não são capazes de atualizar estados similares, podem apenas atualizar os Q-valores de pares específicos (estado,ação). Em vista disso, em 2013 foi proposto um novo método de aprendizado que se propõe a usar uma rede neural no lugar da tabela, de modo a possibilitar generalizações e estimativas de valor para estados similares porém não idênticos à estados já vistos.
@@ -207,6 +209,12 @@ Experience replay consiste de armazenar as experiências do agente em um momento
 `e_t = (s_t, a_t, r_t, s_{t+1})`
 
 D = [e₁, ..., eₙ]
+
+
+### Double DQN
+foi visto em aula também uma versão do DQN onde há duas redes neurais, a value network, que de fato decide as ações do agente a cada step. E a target network, que fornece estimativas de target para a value network utilizar durante seu treinamento.
+
+A target network é usada exclusivamente para fornecer valores alvo (target values) que servem como referência para a value network durante o processo de atualização. Quando a value network quer ajustar seus parâmetros para melhorar suas previsões (Q-values), ela compara suas estimativas atuais com esses valores alvo calculados pela target network. Isso ajuda a manter o aprendizado mais estável, evitando que as atualizações fiquem muito instáveis por causa de mudanças rápidas nos alvos.
 
 ### Reinforce
 
@@ -301,16 +309,15 @@ Geralmente, o critic reduz a variância do gradiente fornecido na otimização d
 
 PPO (Proximal Policy Optimization) é um algoritmo de aprendizado por reforço baseado no paradigma actor-critic, em que o ator (policy) escolhe as ações e o crítico (critic) estima o valor das ações ou estados.
 
-Uma das principais inovações do PPO é o uso de uma função de perda com uma "clipping function" (L`<sub>`clip`</sub>`), que restringe o quanto a política pode mudar em cada atualização. Isso é feito para evitar atualizações muito bruscas na política, que poderiam desestabilizar o aprendizado. Essa técnica torna o treinamento mais estável e melhora a velocidade de convergência.
+Uma das principais inovações do PPO é o uso de uma função de perda com uma "clipping function" (Lclip), que restringe o quanto a política pode mudar em cada atualização. Isso é feito para evitar atualizações muito bruscas na política, que poderiam desestabilizar o aprendizado. Essa técnica torna o treinamento mais estável e melhora a velocidade de convergência.
 Detalhes Técnicos :
 
-A função L`<sub>`clip`</sub>` é baseada na razão entre a nova política e a antiga:
+A função Lclip é baseada na razão entre a nova política e a antiga:
 r(θ)=πθ(a∣s)πθold(a∣s)
 r(θ)=πθold(a∣s)πθ(a∣s)
 
 A função de perda do ator é:
-Lclip(θ)=E[min⁡(r(θ)A^,clip(r(θ),1−ϵ,1+ϵ)A^)]
-Lclip(θ)=E[min(r(θ)A^,clip(r(θ),1−ϵ,1+ϵ)A^)]
+
 
 Onde:
 
